@@ -35,7 +35,6 @@ use valida_machine::StarkConfigImpl;
 use valida_machine::__internal::p3_commit::ExtensionMmcs;
 use valida_util::bench::PerformanceReport;
 
-/*
 fn fib_program<Val: PrimeField32 + TwoAdicField>() -> Vec<InstructionWord<i32>> {
     let mut program = vec![];
 
@@ -407,7 +406,7 @@ fn loadfp_program<Val: PrimeField32 + TwoAdicField>() -> Vec<InstructionWord<i32
 
     program
 }
-*/
+
 fn prove_program(program: Vec<InstructionWord<i32>>) -> BasicMachine<BabyBear> {
     let mut report = PerformanceReport::default();
     report.program = "fibonacci".to_string();
@@ -498,7 +497,7 @@ fn prove_program(program: Vec<InstructionWord<i32>>) -> BasicMachine<BabyBear> {
     machine
 }
 #[test]
-fn prove_fibonacci_basic() {
+fn prove_fibonacci_basic_test() {
     let program = fib_program::<BabyBear>();
 
     let machine = prove_program(program);
@@ -515,6 +514,7 @@ fn prove_fibonacci_basic() {
     */
 }
 
+/*
 #[test]
 fn prove_left_imm_ops() {
     let program = left_imm_ops_program::<BabyBear>();
@@ -652,3 +652,4 @@ fn prove_loadfp() {
         Word([0, 0, 16, 3]) // fp(3) = 0x1003 = (0, 0, 16, 0)
     );
 }
+*/
