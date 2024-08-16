@@ -1523,6 +1523,7 @@ dependencies = [
  "valida-program",
  "valida-range",
  "valida-static-data",
+ "valida-util",
 ]
 
 [[package]]
@@ -1565,6 +1566,7 @@ dependencies = [
  "valida-program",
  "valida-range",
  "valida-static-data",
+ "valida-util",
 ]
 
 [[package]]

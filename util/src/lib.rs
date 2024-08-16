@@ -5,6 +5,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 use p3_field::Field;
 
+pub mod bench;
+
 /// Returns `[0, ..., N - 1]`.
 pub const fn indices_arr<const N: usize>() -> [usize; N] {
     let mut indices_arr = [0; N];

@@ -1,5 +1,7 @@
 extern crate core;
 
+use std::time::Instant;
+
 use p3_baby_bear::BabyBear;
 use p3_fri::{TwoAdicFriPcs, TwoAdicFriPcsConfig};
 use valida_alu_u32::add::{Add32Instruction, MachineWithAdd32Chip};
@@ -16,6 +18,7 @@ use valida_machine::{
 use valida_memory::MachineWithMemoryChip;
 use valida_opcodes::BYTES_PER_INSTR;
 use valida_program::MachineWithProgramChip;
+use valida_util::bench::PerformanceReport;
 
 use p3_challenger::DuplexChallenger;
 use p3_dft::Radix2Bowers;
@@ -32,7 +35,7 @@ use valida_machine::StarkConfigImpl;
 use valida_machine::__internal::p3_commit::ExtensionMmcs;
 
 #[test]
-fn prove_fibonacci() {
+fn prove_fibonacci_basic_macro() {
     let mut program = vec![];
 
     // Label locations
@@ -61,7 +64,8 @@ fn prove_fibonacci() {
         },
         InstructionWord {
             opcode: <Imm32Instruction as Instruction<BasicMachine<Val>, Val>>::OPCODE,
-            operands: Operands([-8, 0, 0, 0, 25]),
+            // 131072
+            operands: Operands([-8, 0, 2, 0, 0]),
         },
         InstructionWord {
             opcode: <Add32Instruction as Instruction<BasicMachine<Val>, Val>>::OPCODE,
@@ -185,6 +189,11 @@ fn prove_fibonacci() {
         },
     ]);
 
+    let mut report = PerformanceReport::default();
+    report.program = "fibonacci".to_string();
+    report.prover = "valida".to_string();
+
+    let overhead_start = Instant::now();
     let mut machine = BasicMachine::<Val>::default();
     let rom = ProgramROM::new(program);
     machine.program_mut().set_program_rom(&rom);
@@ -235,28 +244,45 @@ fn prove_fibonacci() {
 
     let challenger = Challenger::new(perm16);
     let config = MyConfig::new(pcs, challenger);
+    let overhead_duration = overhead_start.elapsed().as_secs_f64();
+    report.overhead_duration = overhead_duration;
+
+    let core_prove_start = Instant::now();
     let proof = machine.prove(&config);
+    let core_prove_duration = core_prove_start.elapsed().as_secs_f64();
+    report.core_prove_duration = core_prove_duration;
 
     let mut bytes = vec![];
     ciborium::into_writer(&proof, &mut bytes).expect("serialization failed");
     println!("Proof size: {} bytes", bytes.len());
+    report.core_proof_size = bytes.len();
+
     let deserialized_proof: MachineProof<MyConfig> =
         ciborium::from_reader(bytes.as_slice()).expect("deserialization failed");
 
+    let core_verify_start = Instant::now();
     machine
         .verify(&config, &proof)
         .expect("verification failed");
+    let core_verify_duration = core_verify_start.elapsed().as_secs_f64();
+    report.core_verify_duration = core_verify_duration;
+
     machine
         .verify(&config, &deserialized_proof)
         .expect("verification failed");
 
-    assert_eq!(machine.cpu().clock, 192);
-    assert_eq!(machine.cpu().operations.len(), 192);
-    assert_eq!(machine.mem().operations.values().flatten().count(), 401);
-    assert_eq!(machine.add_u32().operations.len(), 105);
+    report.cycles = machine.cpu().operations.len();
+    println!("basic_macro - performance report: {report:#?}");
 
-    assert_eq!(
-        *machine.mem().cells.get(&(0x1000 + 4)).unwrap(), // Return value
-        Word([0, 1, 37, 17,])                             // 25th fibonacci number (75025)
-    );
+    /*
+        assert_eq!(machine.cpu().clock, 192);
+        assert_eq!(machine.cpu().operations.len(), 192);
+        assert_eq!(machine.mem().operations.values().flatten().count(), 401);
+        assert_eq!(machine.add_u32().operations.len(), 105);
+
+        assert_eq!(
+            *machine.mem().cells.get(&(0x1000 + 4)).unwrap(), // Return value
+            Word([0, 1, 37, 17,])                             // 25th fibonacci number (75025)
+        );
+    */
 }

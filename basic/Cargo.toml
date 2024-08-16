@@ -34,6 +34,7 @@ valida-output = { path = "../output" }
 valida-program = { path = "../program" }
 valida-range = { path = "../range" }
 valida-static-data = { path = "../static_data" }
+valida-util = { path = "../util" }
 p3-baby-bear = { workspace = true }
 p3-field = { workspace = true }
 p3-maybe-rayon = { workspace = true }
